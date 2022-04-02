@@ -11,18 +11,20 @@ const Header = ({ email, expenses, currency }) => {
     <header>
       <h2>TrybeWallet</h2>
       <div>
-        <h4>Email:</h4>
-        <p data-testid="email-field">{ email }</p>
-      </div>
-      <div>
-        <h4>Despesa Total:</h4>
-        <p data-testid="header-currency-field">
+        <span data-testid="email-field">
+          <b>Email:</b>
+          { email }
+        </span>
+        <span>
+          <b>Despesa total:</b>
           R$
-          {' '}
-          <span data-testid="total-field">{ total.toFixed(2) }</span>
-          {' '}
-          { currency }
-        </p>
+          <span data-testid="total-field">
+            {total.toFixed(2)}
+          </span>
+          <span data-testid="header-currency-field">
+            { currency }
+          </span>
+        </span>
       </div>
     </header>
   );

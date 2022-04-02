@@ -1,11 +1,11 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { deleteExpense } from '../actions';
+import { deleteExpense, editExpense } from '../actions';
 
 class ExpenseTable extends Component {
   render() {
-    const { expenses, deleteExpenses } = this.props;
+    const { expenses, deleteExpenses, editExpenses } = this.props;
 
     const moneyFormatter = (value) => Number(value).toLocaleString('en-US', {
       minimumFractionDigits: 2,
@@ -47,6 +47,13 @@ class ExpenseTable extends Component {
                 <td>
                   <button
                     type="button"
+                    data-testid="edit-btn"
+                    onClick={ () => editExpenses(id) }
+                  >
+                    Editar
+                  </button>
+                  <button
+                    type="button"
                     data-testid="delete-btn"
                     onClick={ () => deleteExpenses(id) }
                   >
@@ -68,6 +75,7 @@ const mapStateToProps = ({ wallet: { expenses } }) => ({
 
 const mapDispatchToProps = (dispatch) => ({
   deleteExpenses: (id) => dispatch(deleteExpense(id)),
+  editExpenses: (id) => dispatch(editExpense(id)),
 });
 
 ExpenseTable.propTypes = {
@@ -87,7 +95,8 @@ ExpenseTable.propTypes = {
       ),
     }),
   ),
-  deleteExpenses: PropTypes.func.isRequired,
+  deleteExpenses: PropTypes.func,
+  editExpenses: PropTypes.func,
 }.isRequired;
 
 export default connect(mapStateToProps, mapDispatchToProps)(ExpenseTable);

@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { fetchExchange, saveExpense } from '../actions';
+import { fetchCurrencies, saveExpense, editedExpense } from '../actions';
 
 class ExpenseForm extends Component {
   constructor() {
@@ -9,57 +9,71 @@ class ExpenseForm extends Component {
 
     this.state = {
       id: 0,
-      value: '0',
+      value: '',
       currency: '',
       method: '',
       tag: '',
       description: '',
     };
+  }
+
+  componentDidUpdate(prev) {
+    const { isEditing } = this.props;
+    if (prev.isEditing !== isEditing) {
+      this.setStateToEditExpense();
+    }
+  }
+
+  setStateToEditExpense = () => {
+    const { toBeEdited } = this.props;
+    this.setState({ ...toBeEdited });
   }
 
   handleChange = ({ target: { name, value } }) => {
     this.setState({ [name]: value });
   }
 
-  handleSubmit = async (e) => {
-    e.preventDefault();
-    const { getExchange } = this.props;
-    await getExchange();
-    const { addExpense, exchangeRates } = this.props;
-    const { id, value, currency, method, tag, description } = this.state;
-    const expense = {
-      id,
-      value,
-      currency,
-      method,
-      tag,
-      description,
-      exchangeRates,
-    };
-    addExpense(expense);
-    this.setState({
-      id: id + 1,
-      value: '0',
+  initialState = () => {
+    this.setState((prev) => ({
+      id: prev.id + 1,
+      value: '',
       currency: '',
       method: '',
       tag: '',
       description: '',
-    });
+    }));
+  }
+
+  handleSubmit = (e) => {
+    e.preventDefault();
+    const { getExchange, addExpense, exchangeRates } = this.props;
+    getExchange();
+    const expense = { ...this.state, exchangeRates };
+    addExpense(expense);
+    this.initialState();
+  }
+
+  handleEdit = (e) => {
+    e.preventDefault();
+    const { editedExchange } = this.props;
+    editedExchange(this.state);
+    this.initialState();
   }
 
   render() {
-    const { isLoading, currencies, error } = this.props;
+    const { isLoading, currencies, error, isEditing } = this.props;
     const { value, currency, method, tag, description } = this.state;
     return (
       <div>
         { isLoading && <p>Loading...</p> }
-        <form onSubmit={ this.handleSubmit }>
+        <form onSubmit={ isEditing ? this.handleEdit : this.handleSubmit }>
           <label htmlFor="value">
             Valor:
             <input
               type="number"
               id="value"
               name="value"
+              placeholder="Amount"
               value={ value }
               data-testid="value-input"
               onChange={ this.handleChange }
@@ -71,6 +85,7 @@ class ExpenseForm extends Component {
               id="currency"
               name="currency"
               value={ currency }
+              data-testid="currency-input"
               onChange={ this.handleChange }
             >
               <option value="" disabled hidden>Selecione</option>
@@ -119,6 +134,7 @@ class ExpenseForm extends Component {
               type="text"
               id="description"
               name="description"
+              placeholder="Insert a short description"
               value={ description }
               data-testid="description-input"
               onChange={ this.handleChange }
@@ -128,8 +144,7 @@ class ExpenseForm extends Component {
             type="submit"
             disabled={ !(value > 0 && currency && method && tag && description) }
           >
-            Adicionar despesa
-
+            {isEditing ? 'Editar despesa' : 'Adicionar despesa'}
           </button>
         </form>
         {error && <p>{ error }</p>}
@@ -140,15 +155,18 @@ class ExpenseForm extends Component {
 
 const mapDispatchToProps = (dispatch) => ({
   addExpense: (expense) => dispatch(saveExpense(expense)),
-  getExchange: () => dispatch(fetchExchange()),
+  getExchange: () => dispatch(fetchCurrencies()),
+  editedExchange: (state) => dispatch(editedExpense(state)),
 });
 
 const mapStateToProps = ({
-  wallet: { isLoading, currencies, error, exchangeRates } }) => ({
+  wallet: { isLoading, currencies, error, exchangeRates, isEditing, toBeEdited } }) => ({
   isLoading,
   currencies,
   error,
   exchangeRates,
+  isEditing,
+  toBeEdited,
 });
 
 ExpenseForm.propTypes = {
@@ -156,6 +174,14 @@ ExpenseForm.propTypes = {
   currencies: PropTypes.arrayOf(PropTypes.string),
   error: PropTypes.string,
   exchangeRates: PropTypes.objectOf(PropTypes.object),
+  isEditing: PropTypes.bool,
+  toBeEdited: PropTypes.objectOf(
+    PropTypes.string,
+    PropTypes.number,
+  ),
+  addExpense: PropTypes.func,
+  getExchange: PropTypes.func,
+  editedExpense: PropTypes.func,
 }.isRequired;
 
 export default connect(mapStateToProps, mapDispatchToProps)(ExpenseForm);

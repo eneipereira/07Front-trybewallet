@@ -3,8 +3,9 @@ export const CURRENCY_REQUEST = 'CURRENCY_REQUEST';
 export const REQUEST_SUCCESS = 'REQUEST_SUCCESS';
 export const REQUEST_FAILURE = 'REQUEST_FAILURE';
 export const ADD_EXPENSE = 'ADD_EXPENSE';
-export const REQUEST_EXCHANGE = 'REQUEST_EXCHANGE';
 export const DELETE_EXPENSE = 'DELETE_EXPENSE';
+export const EDIT_EXPENSE = 'EDIT_EXPENSE';
+export const EDITED_EXPENSE = 'EDITED_EXPENSE';
 
 export const userLogin = (user) => ({ type: LOGIN, user });
 
@@ -25,35 +26,22 @@ export const saveExpense = (expense) => ({
   payload: expense,
 });
 
-export const getExchRate = (payload) => ({
-  type: REQUEST_EXCHANGE,
-  payload,
-});
-
 export const deleteExpense = (id) => ({
   type: DELETE_EXPENSE,
   payload: id,
 });
 
-const URL = 'https://economia.awesomeapi.com.br/json/all';
+export const editExpense = (id) => ({
+  type: EDIT_EXPENSE,
+  payload: id,
+});
 
-export const fetchExchange = () => (
-  async (dispatch) => {
-    dispatch(requestCurrency());
-    try {
-      const response = await fetch(URL);
-      const data = await response.json();
-      delete data.USDT;
-      if (data) {
-        dispatch(getExchRate(data));
-      } else {
-        throw new Error('Request failed! Please refresh the page!');
-      }
-    } catch (error) {
-      dispatch(requestFailed(error));
-    }
-  }
-);
+export const editedExpense = (expense) => ({
+  type: EDITED_EXPENSE,
+  payload: expense,
+});
+
+const URL = 'https://economia.awesomeapi.com.br/json/all';
 
 export const fetchCurrencies = () => (
   async (dispatch) => {

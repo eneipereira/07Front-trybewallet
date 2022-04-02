@@ -3,8 +3,9 @@ import {
   REQUEST_SUCCESS,
   REQUEST_FAILURE,
   ADD_EXPENSE,
-  REQUEST_EXCHANGE,
   DELETE_EXPENSE,
+  EDIT_EXPENSE,
+  EDITED_EXPENSE,
 } from '../actions';
 
 const INITIAL_STATE = {
@@ -14,7 +15,25 @@ const INITIAL_STATE = {
   isLoading: false,
   error: null,
   exchangeRates: {},
+  toBeEdited: {},
+  isEditing: false,
 };
+
+const editedExpense = (state, action) => ({
+  ...state,
+  expenses: state.expenses.map((expense) => {
+    if (expense.id === state.toBeEdited.id) {
+      return {
+        ...action.payload,
+        exchangeRates: expense.exchangeRates,
+        id: expense.id,
+      };
+    }
+    return expense;
+  }),
+  isEditing: false,
+  toBeEdited: {},
+});
 
 const walletReducer = (state = INITIAL_STATE, action) => {
   switch (action.type) {
@@ -27,6 +46,7 @@ const walletReducer = (state = INITIAL_STATE, action) => {
     return {
       ...state,
       currencies: Object.keys(action.payload),
+      exchangeRates: action.payload,
       isLoading: false,
     };
   case REQUEST_FAILURE:
@@ -40,17 +60,21 @@ const walletReducer = (state = INITIAL_STATE, action) => {
       ...state,
       expenses: [...state.expenses, action.payload],
     };
-  case REQUEST_EXCHANGE:
+  case DELETE_EXPENSE: {
+    const updatedList = state.expenses.filter((expense) => expense.id !== action.payload);
     return {
       ...state,
-      exchangeRates: action.payload,
-      isLoading: false,
+      expenses: updatedList,
     };
-  case DELETE_EXPENSE:
+  }
+  case EDIT_EXPENSE:
     return {
       ...state,
-      expenses: state.expenses.filter((expense) => expense.id !== action.payload),
+      isEditing: true,
+      toBeEdited: state.expenses.find((expense) => expense.id === action.payload),
     };
+  case EDITED_EXPENSE:
+    return editedExpense(state, action);
   default:
     return state;
   }
